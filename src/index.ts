@@ -2,6 +2,9 @@
 
 import express, { Express, Request, Response } from 'express';
 import expressLayouts from 'express-ejs-layouts';
+import bodyParser from 'body-parser';
+import noteRoutes from './routes/noteRoutes';
+import sequelize from './config/database';
 import path from 'path';
 import dotenv from 'dotenv';
 
@@ -15,7 +18,11 @@ const app: Express = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Setup layouts
+// Setup middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(expressLayouts);
 app.set('layout', 'layouts/main');
 
@@ -24,6 +31,9 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // Define port
 const port = process.env.PORT || 3000;
+
+// Routes
+app.use('/notes', noteRoutes);
 
 // Basic route with template rendering
 app.get('/', (req: Request, res: Response) => {
@@ -41,6 +51,28 @@ app.get('/', (req: Request, res: Response) => {
   }
 });
 
+// Initialize database and start server
+const initializeApp = async () => {
+  try {
+    // Database connection and sync
+    await sequelize.authenticate();
+    console.log('Database connection has been established successfully.');
+    
+    await sequelize.sync({ alter: true }); // Use alter: true instead of force: true for development
+    console.log('Database synchronized successfully.');
+
+    // Start server
+    app.listen(port, () => {
+      console.log(`Server is running at http://localhost:${port}`);
+      console.log(`Views directory: ${path.join(__dirname, 'views')}`);
+    });
+
+  } catch (error) {
+    console.error('Unable to initialize application:', error);
+    process.exit(1);
+  }
+};
+
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: Function) => {
   console.error(err.stack);
@@ -52,8 +84,5 @@ app.use((req: Request, res: Response) => {
   res.status(404).render('404', { title: '404: Page Not Found' });
 });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
-  console.log(`Views directory: ${path.join(__dirname, 'views')}`);
-});
+// Start the application
+initializeApp();
