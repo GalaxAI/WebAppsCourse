@@ -2,13 +2,109 @@
 
 import { Request, Response } from 'express';
 import Note from '../models/Note';
-import FileService from '../services/FileService.ts';
-import path from 'path';
+import FileService from '../services/FileService';
+import { ApiResponse, NoteData } from '../types/api';
 
-export class NoteController {
-  async getAllNotes(req: Request, res: Response) {
+class NoteController {  // Usunięto export class
+  // API Methods
+  public getAllNotesApi = async (req: Request, res: Response<ApiResponse<Note[]>>) => {
     try {
-      const notes = await Note.findAll();
+      const notes = await Note.findAll({
+        order: [['createdAt', 'DESC']]
+      });
+      res.json({ success: true, data: notes });
+    } catch (error) {
+      res.status(500).json({ success: false, error: 'Failed to fetch notes' });
+    }
+  }
+
+  public getNoteByIdApi = async (req: Request, res: Response<ApiResponse<Note>>) => {
+    try {
+      const note = await Note.findByPk(req.params.id);
+      if (!note) {
+        return res.status(404).json({ success: false, error: 'Note not found' });
+      }
+      res.json({ success: true, data: note });
+    } catch (error) {
+      res.status(500).json({ success: false, error: 'Failed to fetch note' });
+    }
+  }
+
+  public createNoteApi = async (req: Request, res: Response<ApiResponse<Note>>) => {
+    try {
+      const noteData: NoteData = {
+        title: req.body.title,
+        content: req.body.content
+      };
+
+      if (req.file) {
+        noteData.filePath = await FileService.saveFile(
+          `${Date.now()}-${req.file.originalname}`,
+          req.file.buffer
+        );
+      }
+
+      const note = await Note.create(noteData);
+      res.status(201).json({ success: true, data: note });
+    } catch (error) {
+      res.status(500).json({ success: false, error: 'Failed to create note' });
+    }
+  }
+
+  public updateNoteApi = async (req: Request, res: Response<ApiResponse<Note>>) => {
+    try {
+      const note = await Note.findByPk(req.params.id);
+      if (!note) {
+        return res.status(404).json({ success: false, error: 'Note not found' });
+      }
+
+      const noteData: NoteData = {
+        title: req.body.title,
+        content: req.body.content,
+        filePath: note.filePath
+      };
+
+      if (req.file) {
+        if (noteData.filePath) {
+          await FileService.deleteFile(noteData.filePath);
+        }
+        noteData.filePath = await FileService.saveFile(
+          `${Date.now()}-${req.file.originalname}`,
+          req.file.buffer
+        );
+      }
+
+      await note.update(noteData);
+      res.json({ success: true, data: note });
+    } catch (error) {
+      res.status(500).json({ success: false, error: 'Failed to update note' });
+    }
+  }
+
+  public deleteNoteApi = async (req: Request, res: Response<ApiResponse<null>>) => {
+    try {
+      const note = await Note.findByPk(req.params.id);
+      if (!note) {
+        return res.status(404).json({ success: false, error: 'Note not found' });
+      }
+
+      if (note.filePath) {
+        await FileService.deleteFile(note.filePath);
+      }
+
+      await note.destroy();
+      res.status(204).json({ success: true });
+    } catch (error) {
+      res.status(500).json({ success: false, error: 'Failed to delete note' });
+    }
+  }
+
+  // Web Methods
+  public getAllNotes = async (req: Request, res: Response) => {
+    try {
+      const notes = await Note.findAll({
+        order: [['createdAt', 'DESC']]
+      });
       res.render('notes/index', { 
         title: 'Notes',
         notes 
@@ -19,14 +115,13 @@ export class NoteController {
     }
   }
 
-  async createNote(req: Request, res: Response) {
+  public createNote = async (req: Request, res: Response) => {
     try {
-      console.log('Request body:', req.body); // Debugging
-      console.log('File:', req.file); // Debugging
+      console.log('Request body:', req.body);
+      console.log('File:', req.file);
 
       const { title, content } = req.body;
 
-      // Validation
       if (!title || !content) {
         console.log('Missing required fields');
         return res.status(400).send('Title and content are required');
@@ -34,7 +129,6 @@ export class NoteController {
 
       let filePath: string | undefined;
 
-      // Handle file upload if exists
       if (req.file) {
         filePath = await FileService.saveFile(
           `${Date.now()}-${req.file.originalname}`,
@@ -48,7 +142,7 @@ export class NoteController {
         filePath
       });
 
-      console.log('Created note:', note.toJSON()); // Debugging
+      console.log('Created note:', note.toJSON());
 
       res.redirect('/notes');
     } catch (error) {
@@ -57,14 +151,13 @@ export class NoteController {
     }
   }
 
-  async deleteNote(req: Request, res: Response) {
+  public deleteNote = async (req: Request, res: Response) => {
     try {
       const note = await Note.findByPk(req.params.id);
       if (!note) {
         return res.status(404).send('Note not found');
       }
 
-      // Delete associated file if exists
       if (note.filePath) {
         await FileService.deleteFile(note.filePath);
       }
@@ -78,4 +171,5 @@ export class NoteController {
   }
 }
 
-export default new NoteController();
+const noteController = new NoteController();
+export default noteController;

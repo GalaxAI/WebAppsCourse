@@ -3,10 +3,12 @@
 import express, { Express, Request, Response } from 'express';
 import expressLayouts from 'express-ejs-layouts';
 import bodyParser from 'body-parser';
-import noteRoutes from './routes/noteRoutes';
 import sequelize from './config/database';
 import path from 'path';
 import dotenv from 'dotenv';
+
+import apiNoteRoutes from './routes/api/noteRoutes';
+import webNoteRoutes from './routes/web/noteRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -33,7 +35,9 @@ app.use(express.static(path.join(__dirname, '../public')));
 const port = process.env.PORT || 3000;
 
 // Routes
-app.use('/notes', noteRoutes);
+app.use('/api/notes', apiNoteRoutes);  // API routes
+app.use('/notes', webNoteRoutes);      // Web routes
+
 
 // Basic route with template rendering
 app.get('/', (req: Request, res: Response) => {
