@@ -1,60 +1,68 @@
 <div class="container">
-  <h1>Notes</h1>
+  <h1 class="page-title">Notes</h1>
+  
+  <div class="card">
+    <h2 class="card-header">Create New Note</h2>
+    <form action="/notes" method="POST" enctype="multipart/form-data" class="note-form">
+      <div class="form-group">
+        <label for="title" class="form-label">Title:</label>
+        <input 
+          type="text" 
+          id="title" 
+          name="title" 
+          required 
+          class="form-control"
+          placeholder="Enter note title"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label for="content" class="form-label">Content:</label>
+        <textarea 
+          id="content" 
+          name="content" 
+          required 
+          class="form-control"
+          rows="4"
+          placeholder="Write your note here..."
+        ></textarea>
+      </div>
+      
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-plus-circle"></i> Create Note
+      </button>
+    </form>
+  </div>
 
-  <form action="/notes" method="POST" enctype="multipart/form-data">
-    <div class="form-group">
-      <label for="title">Title:</label>
-      <input 
-        type="text" 
-        id="title" 
-        name="title" 
-        required 
-        class="form-control"
-      >
-    </div>
-    
-    <div class="form-group">
-      <label for="content">Content:</label>
-      <textarea 
-        id="content" 
-        name="content" 
-        required 
-        class="form-control"
-        rows="4"
-      ></textarea>
-    </div>
-    
-    <div class="form-group">
-      <label for="file">Attachment (optional):</label>
-      <input 
-        type="file" 
-        id="file" 
-        name="file" 
-        class="form-control-file"
-      >
-    </div>
-    
-    <button type="submit" class="btn btn-primary">Create Note</button>
-  </form>
-
-  <h2>Existing Notes</h2>
-  <div class="notes-list">
-    <% if (notes && notes.length > 0) { %>
-      <% notes.forEach(note => { %>
-        <div class="note">
-          <h3><%= note.title %></h3>
-          <p><%= note.content %></p>
-          <% if (note.filePath) { %>
-            <p>Attachment: <%= note.filePath.split('/').pop() %></p>
-          <% } %>
-          <form action="/notes/<%= note.id %>" method="POST" style="display: inline;">
-            <input type="hidden" name="_method" value="DELETE">
-            <button type="submit" class="btn btn-danger">Delete</button>
-          </form>
+  <div class="card">
+    <h2 class="card-header">Existing Notes</h2>
+    <div class="notes-list">
+      <% if (notes && notes.length > 0) { %>
+        <% notes.forEach(note => { %>
+          <div class="note-item">
+            <div class="note-header">
+              <h3 class="note-title"><%= note.title %></h3>
+              <form action="/notes/<%= note.id %>/delete" method="POST" class="note-actions">
+                <button type="submit" class="btn btn-danger btn-sm">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </div>
+            <div class="note-content"><%= note.content %></div>
+            <% if (note.filePath) { %>
+              <div class="note-attachment">
+                <i class="fas fa-paperclip"></i>
+                <span><%= note.filePath.split('/').pop() %></span>
+              </div>
+            <% } %>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <div class="empty-state">
+          <i class="fas fa-sticky-note empty-icon"></i>
+          <p>No notes yet. Create your first note!</p>
         </div>
-      <% }); %>
-    <% } else { %>
-      <p>No notes yet. Create your first note!</p>
-    <% } %>
+      <% } %>
+    </div>
   </div>
 </div>

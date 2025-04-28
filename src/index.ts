@@ -2,6 +2,8 @@
 
 import express, { Express, Request, Response } from 'express';
 import expressLayouts from 'express-ejs-layouts';
+import methodOverride from 'method-override';
+import helmet from 'helmet'; // Add this import
 import bodyParser from 'body-parser';
 import sequelize from './config/database';
 import path from 'path';
@@ -22,6 +24,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Setup middleware
 app.use(express.json());
+app.use(methodOverride('_method'));
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -33,6 +36,20 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // Define port
 const port = process.env.PORT || 3000;
+
+// Replace manual CSP with Helmet
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      'default-src': ["'self'"],
+      'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      'font-src': ["'self'", "https://fonts.gstatic.com"],
+      'script-src': ["'self'", "'unsafe-inline'"],
+      'img-src': ["'self'", "data:"]
+    }
+  }
+}));
+
 
 // Routes
 app.use('/api/notes', apiNoteRoutes);  // API routes

@@ -84,6 +84,7 @@ class NoteController {  // Usunięto export class
   public deleteNoteApi = async (req: Request, res: Response<ApiResponse<null>>) => {
     try {
       const note = await Note.findByPk(req.params.id);
+      console.log("debug" + note)
       if (!note) {
         return res.status(404).json({ success: false, error: 'Note not found' });
       }
@@ -105,6 +106,7 @@ class NoteController {  // Usunięto export class
       const notes = await Note.findAll({
         order: [['createdAt', 'DESC']]
       });
+      console.log("Notes: "+ notes)
       res.render('notes/index', { 
         title: 'Notes',
         notes 

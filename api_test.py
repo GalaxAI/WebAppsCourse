@@ -1,5 +1,4 @@
 import requests
-import json
 from pathlib import Path
 
 class NoteApiTester:
@@ -74,7 +73,7 @@ class NoteApiTester:
 
         print(f"\n=== Testing DELETE note ({self.test_note_id}) ===")
         response = requests.delete(f"{self.base_url}/{self.test_note_id}")
-        print(f"Status: {response.status_code}")
+        print(f"Status: {response.status_code}, from {self.base_url}/{self.test_note_id}")
         if response.text:
             print(f"Response: {response.text}")
 

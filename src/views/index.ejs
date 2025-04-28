@@ -1,11 +1,13 @@
 <div class="container">
-    <h1><%= title %></h1>
-    <p><%= message %></p>
+    <h1 class="page-title"><%= title %></h1>
+    <p class="lead-text"><%= message %></p>
     
-    <h2>Lista przykładowa:</h2>
-    <ul>
-        <% items.forEach(function(item) { %>
-            <li><%= item %></li>
-        <% }); %>
-    </ul>
+    <div class="card">
+        <h2 class="card-header">Lista przykładowa:</h2>
+        <ul class="item-list">
+            <% items.forEach(function(item) { %>
+                <li class="item"><%= item %></li>
+            <% }); %>
+        </ul>
+    </div>
 </div>
