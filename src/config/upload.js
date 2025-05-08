@@ -21,16 +21,16 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter function
+// File filter function - restrict to images only
 const fileFilter = (req, file, cb) => {
-  // Accept images, documents, etc.
-  const allowedFileTypes = ['.jpg', '.jpeg', '.png', '.pdf', '.doc', '.docx', '.txt'];
+  // Accept only image file types
+  const allowedFileTypes = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
   const ext = path.extname(file.originalname).toLowerCase();
   
   if (allowedFileTypes.includes(ext)) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type. Only images and documents are allowed.'));
+    cb(new Error('Invalid file type. Only images are allowed.'));
   }
 };
 
