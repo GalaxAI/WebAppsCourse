@@ -4,19 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
-    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        <%- inlineCSS %>
+    </style>
+    <!-- <link rel="stylesheet" href="/p16/css/style.css"> -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
 </head>
 <body>
     <header class="main-header">
         <div class="container">
-            <div class="logo">Your App</div>
-            <nav class="main-nav">
-                <ul class="nav-list">
-                    <li class="nav-item"><a href="/" class="nav-link"><i class="fas fa-home"></i> Home</a></li>
-                    <li class="nav-item"><a href="/notes" class="nav-link"><i class="fas fa-sticky-note"></i> Notes</a></li>
-                </ul>
-            </nav>
+            <div class="logo">Notes App</div>
         </div>
     </header>
 

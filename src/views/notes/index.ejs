@@ -3,7 +3,7 @@
   
   <div class="card">
     <h2 class="card-header">Create New Note</h2>
-    <form action="/notes" method="POST" enctype="multipart/form-data" class="note-form">
+    <form action="/p16/notes" method="POST" class="note-form">
       <div class="form-group">
         <label for="title" class="form-label">Title:</label>
         <input 
@@ -42,7 +42,7 @@
           <div class="note-item">
             <div class="note-header">
               <h3 class="note-title"><%= note.title %></h3>
-              <form action="/notes/<%= note.id %>/delete" method="POST" class="note-actions">
+              <form action="/p16/notes/<%= note.id %>/delete" method="POST" class="note-actions">
                 <button type="submit" class="btn btn-danger btn-sm">
                   <i class="fas fa-trash"></i>
                 </button>
@@ -64,5 +64,7 @@
         </div>
       <% } %>
     </div>
+  </div>
+</div>
   </div>
 </div>
