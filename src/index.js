@@ -1,7 +1,6 @@
 const express = require('express');
 const expressLayouts = require('express-ejs-layouts');
 const methodOverride = require('method-override');
-const helmet = require('helmet');
 const path = require('path');
 const dotenv = require('dotenv');
 const fs = require('fs');
@@ -14,6 +13,7 @@ dotenv.config();
 
 const app = express();
 
+app.use('/p16', express.static(path.join(__dirname, 'public')));
 // Request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);

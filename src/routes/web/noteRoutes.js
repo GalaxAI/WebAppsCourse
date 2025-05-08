@@ -8,6 +8,10 @@ router.use((req, res, next) => {
 });
 
 router.get('/', NoteController.getAllNotes);
-router.post('/', NoteController.createNote);
+
+// Apply the upload middleware to the create route
+router.post('/', NoteController.uploadMiddleware, NoteController.createNote);
+
 router.post('/:id/delete', NoteController.deleteNote);
+
 module.exports = router;

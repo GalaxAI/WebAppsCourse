@@ -1,10 +1,11 @@
 const Note = require('../models/Note');
+const upload = require('../config/upload');
+const fs = require('fs');
+const path = require('path');
 
-// In-memory fallback for when database is unavailable
 let inMemoryNotes = [];
 let dbAvailable = true;
 
-// Check database connection
 const checkDbConnection = async () => {
   try {
     await Note.findAll({ limit: 1 });
@@ -17,10 +18,11 @@ const checkDbConnection = async () => {
   }
 };
 
-// Initial check
 checkDbConnection();
 
 const NoteController = {
+  uploadMiddleware: upload.single('attachment'),
+
   getAllNotes: async (req, res) => {
     try {
       console.log('Handling getAllNotes request');
@@ -52,39 +54,35 @@ const NoteController = {
   
   createNote: async (req, res) => {
     try {
-      console.log('Creating note with data:', req.body);
-      
-      const title = req.body.title;
-      const content = req.body.content;
-      
+      const { title, content } = req.body;
       if (!title || !content) {
         return res.status(400).send('Title and content are required');
       }
       
+      const noteData = {
+        title,
+        content,
+        filePath: req.file ? `/p16/uploads/${req.file.filename}` : null
+      };
+
       let note;
-      
       if (dbAvailable) {
         try {
-          note = await Note.create({ title, content });
+          note = await Note.create(noteData);
         } catch (error) {
           console.error('Database error when creating note:', error);
           await checkDbConnection();
-          
-          // Fallback to in-memory if database fails
           note = { 
             id: Date.now(),
-            title, 
-            content,
+            ...noteData,
             createdAt: new Date()
           };
           inMemoryNotes.unshift(note);
         }
       } else {
-        // Use in-memory storage
         note = { 
           id: Date.now(),
-          title, 
-          content,
+          ...noteData,
           createdAt: new Date()
         };
         inMemoryNotes.unshift(note);
@@ -100,26 +98,46 @@ const NoteController = {
   deleteNote: async (req, res) => {
     try {
       const noteId = req.params.id;
-      console.log(`Deleting note with ID: ${noteId}`);
       
       if (dbAvailable) {
         try {
-          // Find the note by ID
           const note = await Note.findByPk(noteId);
-          
-          if (note) {
-            // Delete the note
-            await note.destroy();
+
+          if (!note) {
+            return res.status(404).send('Note not found');
           }
+
+          if (note.filePath) {
+            const filePath = path.join(__dirname, '../../public', note.filePath.replace('/p16', ''));
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+            }
+          }
+
+          await note.destroy();
         } catch (error) {
           console.error('Database error when deleting note:', error);
           await checkDbConnection();
-          // Fallback to in-memory if database fails
-          inMemoryNotes = inMemoryNotes.filter(note => note.id !== parseInt(noteId));
+          inMemoryNotes = inMemoryNotes.filter(note => {
+            if (note.id === parseInt(noteId) && note.filePath) {
+              const filePath = path.join(__dirname, '../../public', note.filePath.replace('/p16', ''));
+              if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+              }
+            }
+            return note.id !== parseInt(noteId);
+          });
         }
       } else {
-        // Use in-memory storage
-        inMemoryNotes = inMemoryNotes.filter(note => note.id !== parseInt(noteId));
+        inMemoryNotes = inMemoryNotes.filter(note => {
+          if (note.id === parseInt(noteId) && note.filePath) {
+            const filePath = path.join(__dirname, '../../public', note.filePath.replace('/p16', ''));
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+            }
+          }
+          return note.id !== parseInt(noteId);
+        });
       }
       
       return res.redirect('/p16/notes');
