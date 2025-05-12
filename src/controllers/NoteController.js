@@ -31,15 +31,15 @@ const NoteController = {
       if (dbAvailable) {
         try {
           notes = await Note.findAll({
-            order: [['createdAt', 'DESC']]
+            order: [['createdAt', 'ASC']]
           });
         } catch (error) {
           console.error('Error fetching from database:', error);
           await checkDbConnection();
-          notes = inMemoryNotes;
+          notes = inMemoryNotes.sort((a,b) => a.createdAt - b.createdAt);
         }
       } else {
-        notes = inMemoryNotes;
+        notes = inMemoryNotes.sort((a,b) => a.createdAt - b.createdAt);
       }
       
       return res.render('notes/index', {
@@ -48,7 +48,7 @@ const NoteController = {
       });
     } catch (error) {
       console.error('Error in getAllNotes:', error);
-      return res.status(500).send('Error fetching notes');
+      return res.status(500).send('Server error');
     }
   },
   
